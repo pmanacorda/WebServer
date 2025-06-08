@@ -11,6 +11,45 @@
 #include <unordered_map>
 
 /*
+    See: https://www.json.org/json-en.html
+    This parser focuses on flat objects only
+*/
+std::unordered_map<std::string, std::string> parseJson(std::string raw){
+    std::unordered_map<std::string, std::string> res;
+    std::string key = "";
+    std::string value = "";
+    char buffer[100];
+    int buffIndex = 0;
+    for(int i=0; i<raw.size(); i++){
+        switch(raw[i]){
+            case '{':
+            case ' ':
+            case ':':
+                break;
+            case '"':
+            case ',':
+            case '}':
+                if(buffIndex > 0){
+                    if(key.size() == 0){
+                        key = std::string(buffer, buffIndex);
+                    }else{
+                        value = std::string(buffer, buffIndex);;
+                        res.insert_or_assign(key, value);
+                        key = "";
+                        value = "";
+                    }
+                    buffIndex = 0;
+                }
+                break;
+            default:
+                buffer[buffIndex++]=raw[i];
+                break;
+        }
+    }
+    return res;
+}
+
+/*
     See HTTP1.1 Message Syntax: https://datatracker.ietf.org/doc/html/rfc7230#section-3
     "...The normal procedure for parsing an HTTP message is to read the
     start-line into a structure, read each header field into a hash table
@@ -28,6 +67,7 @@ struct HttpRequest{
     HttpMethod method = GET;
     std::string path;
     std::string body;
+    std::unordered_map<std::string,std::string> json;
     std::unordered_map<std::string,std::string> headers;
     std::unordered_map<std::string,std::string> parameters;
     HttpRequest() : method(GET), path(""), body("") {}
@@ -150,6 +190,9 @@ HttpRequest recv(int clientSocket) {
     std::cout << "INFO - successfully read full request" << std::endl;
     
     httpRequest.body = body;
+    if(httpRequest.headers.find("Content-Type") != httpRequest.headers.end() && httpRequest.headers["Content-Type"] == "application/json"){
+        httpRequest.json = parseJson(body);
+    }
     return httpRequest;
 }
 
