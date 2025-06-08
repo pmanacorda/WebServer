@@ -30,3 +30,11 @@ This feature adds parsing for flat JSON objects in HTTP request bodies:
 - automatically triggered when Content-Type header is "application/json"
 - integrates seamlessly with existing HTTP parser for POST request bodies
 - lightweight implementation without external JSON library dependencies
+
+# Add-Controllers
+This feature registers request handlers for matching HTTP paths:
+- uses a std::unordered_map to associate path strings with handler functions
+- handlers receive HttpRequest and HttpResponse references as parameters
+- controller functions populate the response directly with content and status
+- after execution, the HttpResponse is serialized and sent back to the client in JSON format
+- supports easy extension by adding new routes and handler logic

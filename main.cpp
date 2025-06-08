@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <functional>
 
 /*
     See: https://www.json.org/json-en.html
@@ -47,6 +48,20 @@ std::unordered_map<std::string, std::string> parseJson(std::string raw){
         }
     }
     return res;
+}
+
+std::string serializeJson(std::unordered_map<std::string,std::string> input){
+    std::string output = "{";
+    bool first = true;
+    for(auto it = input.begin(); it != input.end(); it++){
+        if(!first) output += ',';
+        std::stringstream kvp;
+        kvp << '"' << it->first << '"' << ':' << '"' << it->second << '"';
+        output.append(kvp.str());
+        first = false;
+    }
+    output += '}';
+    return output;
 }
 
 /*
@@ -196,15 +211,45 @@ HttpRequest recv(int clientSocket) {
     return httpRequest;
 }
 
+struct HttpResponse{
+    int statusCode = 200;
+    std::unordered_map<std::string,std::string> body;
+};
+
+void router(HttpRequest &request, HttpResponse &response){
+    std::unordered_map<std::string, std::function<void(HttpRequest&, HttpResponse&)>> controllers;
+    controllers["/api/test"] = [](HttpRequest& req, HttpResponse& res) {
+        std::cout << "Test controller triggered" << std::endl;
+        res.body.insert_or_assign("Data", "Result");
+        res.body.insert_or_assign("Data2", "Result2");
+        res.statusCode = 200;
+    };
+    if(controllers.find(request.path) != controllers.end()){
+        controllers[request.path](request, response);
+    }else{
+        response.statusCode = 404;
+    }
+}
+
+
 void handle(int clientSocket){
     try{
         // receive content stream
         HttpRequest request = recv(clientSocket);
-
+        HttpResponse response;
+        router(request, response);
         // write ack back
         // see docs: https://man7.org/linux/man-pages/man2/write.2.html
-        std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 3\r\n\r\nACK";
-        write(clientSocket, response.c_str(), response.size());
+        std::string serialized = serializeJson(response.body);
+        std::unordered_map<int, std::string> statusCodes;
+        statusCodes[200] = "OK";
+        statusCodes[400] = "Not Found";
+        statusCodes[500] = "Internal Server Error";
+        std::stringstream res;
+        res << "HTTP/1.1 " << response.statusCode << " " << statusCodes[response.statusCode] << "\r\n";
+        res << "Content-Type:application/json\r\nContent-Length: " << serialized.size() <<"\r\n\r\n";
+        res << serialized;
+        write(clientSocket, res.str().c_str(), res.str().size());
     }catch(const std::exception& e){
         std::cout << "ERROR - " << e.what() << std::endl;
     }
@@ -239,7 +284,7 @@ int main(){
     sockaddr_in socketAddress;
     socketAddress.sin_family = AF_INET;
     socketAddress.sin_addr.s_addr = INADDR_ANY;
-    socketAddress.sin_port = htons(80);
+    socketAddress.sin_port = htons(8080);
     int bindResult = bind(socketFileDescriptor, (sockaddr*)&socketAddress, sizeof(socketAddress));
     if (bindResult == -1){
         std::cerr << "FATAL - socket binding failed " << strerror(errno) << std::endl;
