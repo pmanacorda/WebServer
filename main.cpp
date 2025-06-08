@@ -52,10 +52,13 @@ std::unordered_map<std::string, std::string> parseJson(std::string raw){
 
 std::string serializeJson(std::unordered_map<std::string,std::string> input){
     std::string output = "{";
+    bool first = true;
     for(auto it = input.begin(); it != input.end(); it++){
+        if(!first) output += ',';
         std::stringstream kvp;
         kvp << '"' << it->first << '"' << ':' << '"' << it->second << '"';
         output.append(kvp.str());
+        first = false;
     }
     output += '}';
     return output;
@@ -218,10 +221,13 @@ void router(HttpRequest &request, HttpResponse &response){
     controllers["/api/test"] = [](HttpRequest& req, HttpResponse& res) {
         std::cout << "Test controller triggered" << std::endl;
         res.body.insert_or_assign("Data", "Result");
-        res.statusCode = 500;
+        res.body.insert_or_assign("Data2", "Result2");
+        res.statusCode = 200;
     };
     if(controllers.find(request.path) != controllers.end()){
         controllers[request.path](request, response);
+    }else{
+        response.statusCode = 404;
     }
 }
 
@@ -237,12 +243,12 @@ void handle(int clientSocket){
         std::string serialized = serializeJson(response.body);
         std::unordered_map<int, std::string> statusCodes;
         statusCodes[200] = "OK";
+        statusCodes[400] = "Not Found";
         statusCodes[500] = "Internal Server Error";
         std::stringstream res;
         res << "HTTP/1.1 " << response.statusCode << " " << statusCodes[response.statusCode] << "\r\n";
         res << "Content-Type:application/json\r\nContent-Length: " << serialized.size() <<"\r\n\r\n";
         res << serialized;
-        //"HTTP/1.1 200 OK\r\nContent-Type:application/json\r\nContent-Length: 3\r\n\r\nACK";
         write(clientSocket, res.str().c_str(), res.str().size());
     }catch(const std::exception& e){
         std::cout << "ERROR - " << e.what() << std::endl;
