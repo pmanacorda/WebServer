@@ -10,3 +10,14 @@ This feature adds IPv4 socket configuration using Linux kernel functions:
 - sys/socket.h::accept() to accept incoming client connections
 sudo lsof -n -i :80 | grep LISTEN
 main    3465 patrickmanacorda    3u  IPv4 0xafe05602b6b5b277      0t0  TCP *:http (LISTEN)
+
+# Add-HTTP1.1-Parser
+This feature reads and parses HTTP1.1 raw input bytes from the client socket:
+- sys/socket.h::read() to get bytes from socket descriptor into a temporary buffer
+- continue reading until header termination `\r\n\r\n` is received
+- built-in protections against oversized headers (8KB limit)
+- parse first line which reveals method, path, query parameters and HTTP version
+- parse headers after first line until termination sequence as Key:Value pairs
+- if Content-Length is present continue reading from socket until body length matches expected bytes
+- supports GET, POST, and DELETE methods with proper error handling
+- custom HttpRequest structure stores the parsed result with method, path, headers, parameters, and body
