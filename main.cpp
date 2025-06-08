@@ -209,7 +209,7 @@ int main(){
     int listenResult = listen(socketFileDescriptor, backlogConnectionQueue);
     if (listenResult == -1){
         std::cerr << "FATAL - socket listening failed " << strerror(errno) << std::endl;
-        exit(1);
+        exit(-1);
     }
     
     // accept incoming client connections
