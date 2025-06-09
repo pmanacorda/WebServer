@@ -1,5 +1,6 @@
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #ifndef HTTP_MODULE_H
 #define HTTP_MODULE_H
@@ -17,7 +18,7 @@ namespace Core {
         HttpMethod method;
         std::string path;
         std::string body;
-        std::unordered_map<std::string, std::string> json;
+        std::vector<std::unordered_map<std::string, std::string>> json;
         std::unordered_map<std::string, std::string> headers;
         std::unordered_map<std::string, std::string> parameters;
     };
@@ -28,7 +29,7 @@ namespace Core {
         static std::string getStatusStr(int status);
 
         int statusCode;
-        std::unordered_map<std::string, std::string> body;
+        std::vector<std::unordered_map<std::string, std::string>> body;
         std::unordered_map<std::string, std::string> headers;
     };
 }

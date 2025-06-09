@@ -2,8 +2,12 @@
 
 namespace Controllers{
     void TestController::Run(Core::HttpRequest& req, Core::HttpResponse& res){
-        res.body.insert_or_assign("Data", "Result");
-        res.body.insert_or_assign("Data2", "Result2");
+        std::unordered_map<std::string, std::string> jsonObj;
+        jsonObj["Data"] = "Result";
+        jsonObj["Data2"] = "Result2";
+        jsonObj["Data3"] = std::to_string(req.json.size());
+        
+        res.body.push_back(jsonObj);
         res.statusCode = 200;
     };
 }
