@@ -45,16 +45,16 @@ namespace Core {
         if (cfd == -1) {
             throw std::runtime_error("Failed to accept connection");
         }
-        return ClientSocket(fd);
+        return ClientSocket(cfd);
     };
 
     WebSocket::WebSocket(int port, int backlog){
-        port = port;
-        backlog = backlog;
+        this->port = port;
+        this->backlog = backlog;
         create();
         configure();
-        listen();
         bind();
+        listen();
     };
 
     WebSocket::~WebSocket(){
@@ -64,7 +64,7 @@ namespace Core {
     }
 
     ClientSocket::ClientSocket(int fd){
-        fd = fd;
+        this->fd = fd;
     }
     ClientSocket::~ClientSocket(){
         close(fd);

@@ -1,8 +1,8 @@
 #include <string>
 #include <unordered_map>
 
-#ifndef HTTP_MODULE_H;
-#define HTTP_MODULE_H;
+#ifndef HTTP_MODULE_H
+#define HTTP_MODULE_H
 namespace Core {
     enum HttpMethod {
         GET,
@@ -32,4 +32,4 @@ namespace Core {
         std::unordered_map<std::string, std::string> headers;
     };
 }
-#endif;
+#endif

@@ -1,5 +1,5 @@
-#ifndef SOCKET_MODULE_H;
-#define SOCKET_MODULE_H;
+#ifndef SOCKET_MODULE_H
+#define SOCKET_MODULE_H
 #include <sys/socket.h>
 #include <stdexcept> 
 #include <netinet/in.h>
@@ -9,6 +9,18 @@
 #include <sstream>
 
 namespace Core {
+        class ClientSocket{
+        private:
+        int fd;
+
+        public:
+        ClientSocket(int);
+        ~ClientSocket();
+
+        HttpRequest recv();
+        void write(HttpResponse);
+    };
+    
     class WebSocket{
         private:
         int fd, port, backlog;
@@ -23,17 +35,5 @@ namespace Core {
 
         ClientSocket accept();
     };
-
-    class ClientSocket{
-        private:
-        int fd;
-
-        public:
-        ClientSocket(int);
-        ~ClientSocket();
-
-        HttpRequest recv();
-        void write(HttpResponse);
-    };
 }
-#endif;
+#endif

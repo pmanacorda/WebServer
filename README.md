@@ -1,5 +1,6 @@
 # WebServer
 From-Scratch implementation of a web server in C++
+g++ -std=c++17 -Isrc/core/headers -Isrc/controllers/headers main.cpp src/core/implementation/*.cpp src/controllers/implementation/* -o main
 
 # Add-Listener-Socket
 This feature adds IPv4 socket configuration using Linux kernel functions:

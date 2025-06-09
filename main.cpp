@@ -1,29 +1,33 @@
 /* AUTHOR: Patrick Manacorda */
-#include <functional>
-#include "core/headers/HttpModule.h"
-#include "core/headers/SocketModule.h"
-#include "core/headers/PresentationModule.h"
+#include <iostream>
+#include <unordered_map>
+#include <string>
+#include <memory>
+#include "HttpModule.h"
+#include "SocketModule.h"
+#include "PresentationModule.h"
+#include "BaseController.h"
 
-void router(Core::HttpRequest &request, Core::HttpResponse &response){
-    std::unordered_map<std::string, std::function<void(Core::HttpRequest&, Core::HttpResponse&)>> controllers;
-    controllers["/api/test"] = [](Core::HttpRequest& req, Core::HttpResponse& res) {
-        res.body.insert_or_assign("Data", "Result");
-        res.body.insert_or_assign("Data2", "Result2");
-        res.statusCode = 200;
-    };
-    if(controllers.find(request.path) != controllers.end()){
-        controllers[request.path](request, response);
-    }else{
-        response.statusCode = 404;
-    }
+std::unordered_map<std::string, std::unique_ptr<Controllers::BaseController>> buildRoutes() {
+    std::unordered_map<std::string, std::unique_ptr<Controllers::BaseController>> map;
+    map["/api/test"] = std::make_unique<Controllers::TestController>();
+    return map;
 }
+
+auto routes = buildRoutes();
 
 void handle(Core::ClientSocket clientSocket){
     try{
-        // receive content stream
         Core::HttpRequest request = clientSocket.recv();
         Core::HttpResponse response;
-        router(request, response);
+        
+        auto route = routes.find(request.path);
+        if(route != routes.end()){
+            route->second->Run(request, response);
+        } else {
+            response.statusCode = 404;
+        }
+        
         clientSocket.write(response);
     }catch(...){}
 }
@@ -34,7 +38,9 @@ int main(){
         try{
             Core::ClientSocket csocket = listener.accept();
             handle(csocket);
-        }catch(...){ continue; }
+        }catch(...){ 
+            continue; 
+        }
     }
     return 1;
 }
