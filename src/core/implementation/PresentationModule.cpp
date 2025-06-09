@@ -1,8 +1,12 @@
 
 #include "PresentationModule.h"
+
 /*
     See: https://www.json.org/json-en.html
-    This parser focuses on flat objects only
+    This parser focuses on flat objects and flat lists of flat objects only
+    Supports:
+    - Single flat object: {"key": "value", "key2": "value2"}
+    - Array of flat objects: [{"key": "value"}, {"key2": "value2"}]
 */
 std::vector<std::unordered_map<std::string, std::string>> JsonUtils::deserialize(std::string raw){
     std::vector<std::unordered_map<std::string, std::string>> res;
