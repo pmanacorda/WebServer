@@ -16,7 +16,7 @@ std::unordered_map<std::string, std::unique_ptr<Controllers::BaseController>> bu
 
 auto routes = buildRoutes();
 
-void handle(Core::ClientSocket clientSocket){
+void handle(Core::ClientSocket& clientSocket){
     try{
         Core::HttpRequest request = clientSocket.recv();
         Core::HttpResponse response;

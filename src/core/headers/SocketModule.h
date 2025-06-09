@@ -17,6 +17,11 @@ namespace Core {
         ClientSocket(int);
         ~ClientSocket();
 
+        ClientSocket(const ClientSocket&) = delete;
+        ClientSocket& operator=(const ClientSocket&) = delete;
+        ClientSocket(ClientSocket&&) = default;
+        ClientSocket& operator=(ClientSocket&&) = default;
+
         HttpRequest recv();
         void write(HttpResponse);
     };
@@ -32,6 +37,11 @@ namespace Core {
         public:
         WebSocket(int,int);
         ~WebSocket();
+
+        WebSocket(const WebSocket&) = delete;
+        WebSocket& operator=(const WebSocket&) = delete;
+        WebSocket(WebSocket&&) = default;
+        WebSocket& operator=(WebSocket&&) = default;
 
         ClientSocket accept();
     };
