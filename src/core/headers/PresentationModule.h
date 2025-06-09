@@ -3,9 +3,10 @@
 #include <unordered_map>
 #include <string>
 #include <sstream>
+#include <vector>
 class JsonUtils{
     public:
-    static std::unordered_map<std::string, std::string> deserialize(std::string);
-    static std::string serialize(std::unordered_map<std::string, std::string>);
+    static std::vector<std::unordered_map<std::string, std::string>> deserialize(std::string);
+    static std::string serialize(std::vector<std::unordered_map<std::string, std::string>>);
 };
 #endif

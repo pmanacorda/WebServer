@@ -26,7 +26,8 @@ This feature reads and parses HTTP1.1 raw input bytes from the client socket:
 # Add-Flat-Json-Parser
 This feature adds parsing for flat JSON objects in HTTP request bodies:
 - parseJson() function processes JSON strings into key-value pairs
-- supports flat objects only: {"key": "value", "key2": 200, "key3": "value3"}
+- supports flat objects: {"key": "value", "key2": 200, "key3": "value3"}
+- supports flat arrays of objects: [{"key": "value"}, {"key2": "value2"}, {"key3": "value3"}]
 - uses character-by-character parsing with switch statement for tokenization
 - automatically triggered when Content-Type header is "application/json"
 - integrates seamlessly with existing HTTP parser for POST request bodies
