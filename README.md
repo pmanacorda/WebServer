@@ -56,3 +56,9 @@ openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 
 - Uses SSL_read/SSL_write to handle encrypted communication
 - Cleans up SSL objects on socket close
 
+# Add-Static-Content
+This feature serves static files (HTML, CSS, JavaScript) directly from the filesystem:
+- Controller reads files using std::ifstream and serves them based on request path
+- Automatic MIME type detection sets appropriate Content-Type headers (text/html, text/css, application/javascript)
+- Supports standard web assets including HTML pages, stylesheets, and client-side scripts
+- Configurable static file directory path for organized web content structure
