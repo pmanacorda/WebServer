@@ -1,5 +1,4 @@
 #include "SocketModule.h"
-
 namespace Core {
     void WebSocket::create(){
         // create socket
@@ -247,11 +246,22 @@ namespace Core {
     void ClientSocket::write(HttpResponse res){
         // write back
         // see docs: https://man7.org/linux/man-pages/man2/write.2.html
-        std::string serialized = JsonUtils::serialize(res.body);
-        std::stringstream stream;
-        stream << "HTTP/1.1 " << res.statusCode << " " << HttpResponse::getStatusStr(res.statusCode) << "\r\n";
-        stream << "Content-Type:application/json\r\nContent-Length: " << serialized.size() <<"\r\n\r\n";
-        stream << serialized;
-        SSL_write(ssl, stream.str().c_str(), stream.str().size());
+        auto it = res.headers.find("Content-Type");
+        if(it != res.headers.end()){
+            std::stringstream stream;
+            if(it->second == "application/json"){
+                std::string serialized = JsonUtils::serialize(res.body);
+                stream << "HTTP/1.1 " << res.statusCode << " " << HttpResponse::getStatusStr(res.statusCode) << "\r\n";
+                stream << "Content-Type:" << it->second << "\r\nContent-Length: " << serialized.size() <<"\r\n\r\n";
+                stream << serialized;
+                SSL_write(ssl, stream.str().c_str(), stream.str().size());
+            }
+            else if(it->second == "text/html" || it->second == "text/css" || it->second == "application/javascript"){
+                stream << "HTTP/1.1 " << res.statusCode << " " << HttpResponse::getStatusStr(res.statusCode) << "\r\n";
+                stream << "Content-Type:" << it->second << "\r\nContent-Length: " << res.text.size() <<"\r\n\r\n";
+                stream << res.text;
+                SSL_write(ssl, stream.str().c_str(), stream.str().size());
+            }
+        }
     }
 }

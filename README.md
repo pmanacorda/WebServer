@@ -1,6 +1,10 @@
 # WebServer
 From-Scratch implementation of a web server in C++
-g++ -std=c++17 -Isrc/core/headers -Isrc/controllers/headers main.cpp src/core/implementation/*.cpp src/controllers/implementation/* -o main
+
+# Build
+g++ -std=c++17 -g -Isrc/core/headers -Isrc/controllers/headers -I /opt/homebrew/opt/openssl@3/include \
+main.cpp src/core/implementation/*.cpp src/controllers/implementation/*.cpp \
+-L /opt/homebrew/opt/openssl@3/lib -lssl -lcrypto -o main
 
 # Add-Listener-Socket
 This feature adds IPv4 socket configuration using Linux kernel functions:
@@ -52,3 +56,9 @@ openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 
 - Uses SSL_read/SSL_write to handle encrypted communication
 - Cleans up SSL objects on socket close
 
+# Add-Static-Content
+This feature serves static files (HTML, CSS, JavaScript) directly from the filesystem:
+- Controller reads files using std::ifstream and serves them based on request path
+- Automatic MIME type detection sets appropriate Content-Type headers (text/html, text/css, application/javascript)
+- Supports standard web assets including HTML pages, stylesheets, and client-side scripts
+- Configurable static file directory path for organized web content structure

@@ -14,6 +14,8 @@ namespace Controllers{
         
         res.body.push_back(jsonObj);
         res.body.push_back(jsonObj2);
+
+        res.headers["Content-Type"] = "application/json";
         res.statusCode = 200;
     };
 }

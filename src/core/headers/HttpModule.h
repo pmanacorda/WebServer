@@ -29,6 +29,7 @@ namespace Core {
         static std::string getStatusStr(int status);
 
         int statusCode;
+        std::string text;
         std::vector<std::unordered_map<std::string, std::string>> body;
         std::unordered_map<std::string, std::string> headers;
     };
