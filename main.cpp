@@ -33,7 +33,7 @@ void handle(Core::ClientSocket& clientSocket){
 }
 
 int main(){
-    Core::WebSocket listener(8080, 10);
+    Core::WebSocket listener(443, 10);
     while(true){
         try{
             Core::ClientSocket csocket = listener.accept();
