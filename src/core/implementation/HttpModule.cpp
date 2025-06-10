@@ -11,6 +11,7 @@ namespace Core {
 
     HttpResponse::HttpResponse() {
         statusCode = 200;
+        text = "";
         body.clear();
         headers.clear();
     }
