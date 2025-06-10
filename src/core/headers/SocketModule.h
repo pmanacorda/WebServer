@@ -7,14 +7,19 @@
 #include "HttpModule.h"
 #include "PresentationModule.h"
 #include <sstream>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
 
 namespace Core {
         class ClientSocket{
         private:
         int fd;
+        SSL* ssl;
+        void configureSSL(SSL_CTX*);
 
         public:
-        ClientSocket(int);
+        ClientSocket(int, SSL_CTX*);
         ~ClientSocket();
 
         ClientSocket(const ClientSocket&) = delete;
@@ -33,6 +38,8 @@ namespace Core {
         void configure();
         void bind();
         void listen();
+        void configureSSL();
+        SSL_CTX *ssl_ctx;
 
         public:
         WebSocket(int,int);

@@ -40,3 +40,15 @@ This feature registers request handlers for matching HTTP paths:
 - controller functions populate the response directly with content and status
 - after execution, the HttpResponse is serialized and sent back to the client in JSON format
 - supports easy extension by adding new routes and handler logic
+
+# Add-SSL
+This feature adds HTTPS support using OpenSSL TLS:
+Generate self-signed cert and key with
+openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes
+- Initializes SSL context with TLS_server_method()
+- Loads cert and private key into context
+- Disables insecure TLS/SSL versions and sets secure cipher list
+- Performs TLS handshake on client accept
+- Uses SSL_read/SSL_write to handle encrypted communication
+- Cleans up SSL objects on socket close
+
