@@ -27,19 +27,38 @@ std::atomic<uint16_t> thread_count = {0};
 
 void handle(Core::ClientSocket clientSocket){
     try{
-        Core::HttpRequest request = clientSocket.recv();
-        Core::HttpResponse response;
+        bool keepAlive = true;
+        while(keepAlive){
+            Core::HttpRequest request = clientSocket.recv();
+            Core::HttpResponse response;
+            if(request.path.empty()) {
+                response.headers["Connection"] = "Close";
+                response.statusCode = 499;
+                clientSocket.write(response);
+                break;
+            }
+            if(request.path == "/"){
+                request.path = "/index.html";
+            }
+            auto route = routes.find(request.path);
+            if(route != routes.end()){
+                route->second->Run(request, response);
+            } else {
+                response.statusCode = 404;
+            }
+            if(request.headers.find("Connection") != request.headers.end()){
+                auto val = request.headers["Connection"];
+                keepAlive = val == "Keep-Alive" || val == "keep-alive";
+            }else{ keepAlive = false; }
 
-        if(request.path == "/" || request.path == ""){
-            request.path = "/index.html";
+            if(keepAlive){
+                response.headers["Connection"] = "Keep-Alive";
+                response.headers["Keep-Alive"] = "timeout=30, max=100";
+            }else{
+                response.headers["Connection"] = "Close";
+            }
+            clientSocket.write(response);
         }
-        auto route = routes.find(request.path);
-        if(route != routes.end()){
-            route->second->Run(request, response);
-        } else {
-            response.statusCode = 404;
-        }
-        clientSocket.write(response);
     }catch(...){}
     thread_count.fetch_sub(1);
 }

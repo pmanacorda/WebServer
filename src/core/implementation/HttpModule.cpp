@@ -20,6 +20,7 @@ namespace Core {
         switch (status) {
             case 200: return "OK";
             case 400: return "Bad Request";
+            case 499: return "Client Closed Request";
             case 404: return "Not Found";
             case 500: return "Internal Server Error";
             default: return "Unknown";
