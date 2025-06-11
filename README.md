@@ -73,3 +73,11 @@ This feature adds concurrent request handling using C++ threading with connectio
 - Uses std::thread::detach() for fire-and-forget execution, eliminating need for thread cleanup
 - Move semantics efficiently transfer ClientSocket ownership to worker threads without copying
 - Provides horizontal scaling for handling multiple simultaneous client requests
+
+# Add-Connection-Keep-Alive
+This feature adds support for persistent HTTP connections using the Connection: Keep-Alive header as defined in HTTP/1.1:
+- Parses and respects the Connection header in incoming client requests
+- If Connection: keep-alive is requested, the server maintains the same TCP connection across multiple HTTP requests
+- If the client does not request keep-alive, or explicitly sets Connection: close, the server shuts down the connection after the response is sent.
+- Implements socket-level timeout protection using setsockopt() with SO_RCVTIMEO, ensuring the server thread doesn't hang if a client goes idle without closing.
+- Also enables TCP-level keep-alive using SO_KEEPALIVE to detect broken connections (e.g. client unexpectedly disconnected) and clean up server resources.

@@ -98,6 +98,14 @@ namespace Core {
 
     ClientSocket::ClientSocket(int fd, SSL_CTX* ctx){
         this->fd = fd;
+        struct timeval timeout;
+        int opt = 1;        
+        timeout.tv_sec = 30;
+        timeout.tv_usec = 0;
+        if(setsockopt(this->fd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) == -1 ||
+        setsockopt(this->fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1){
+            throw std::runtime_error("Failed to configure socket keep alive");
+        };
         configureSSL(ctx);
     }
     ClientSocket::~ClientSocket(){
@@ -245,30 +253,39 @@ namespace Core {
         return httpRequest;
     }
 
-    void ClientSocket::write(HttpResponse res){
+    void ClientSocket::write(HttpResponse res) {
         // write back
         // see docs: https://man7.org/linux/man-pages/man2/write.2.html
         auto it = res.headers.find("Content-Type");
+        auto conn = res.headers.find("Connection");
+        auto connectionStr = (conn != res.headers.end() ? conn->second : "Close");
+
         std::stringstream stream;
-        if(it != res.headers.end()){
-            if(it->second == "application/json"){
-                std::string serialized = JsonUtils::serialize(res.body);
-                stream << "HTTP/1.1 " << res.statusCode << " " << HttpResponse::getStatusStr(res.statusCode) << "\r\n";
-                stream << "Content-Type:" << it->second << "\r\nContent-Length: " << serialized.size() <<"\r\n\r\n";
-                stream << serialized;
-                SSL_write(ssl, stream.str().c_str(), stream.str().size());
-            }
-            else if(it->second == "text/html" || it->second == "text/css" || it->second == "application/javascript"){
-                stream << "HTTP/1.1 " << res.statusCode << " " << HttpResponse::getStatusStr(res.statusCode) << "\r\n";
-                stream << "Content-Type:" << it->second << "\r\nContent-Length: " << res.text.size() <<"\r\n\r\n";
-                stream << res.text;
-                SSL_write(ssl, stream.str().c_str(), stream.str().size());
-            }
-        }else{
-            stream << "HTTP/1.1 " << res.statusCode << " " << HttpResponse::getStatusStr(res.statusCode) << "\r\n";
-            stream << "Content-Type:text/plain" << "\r\nContent-Length:" << res.text.size() <<"\r\n\r\n";
-            stream << res.text;
-            SSL_write(ssl, stream.str().c_str(), stream.str().size());
+        stream << "HTTP/1.1 " << res.statusCode << " " << HttpResponse::getStatusStr(res.statusCode) << "\r\n";
+        stream << "Connection: " << connectionStr << "\r\n";
+
+        auto keepAlive = res.headers.find("Keep-Alive");
+        if (keepAlive != res.headers.end()) {
+            stream << "Keep-Alive: " << keepAlive->second << "\r\n";
         }
+
+        if (it != res.headers.end()) {
+            stream << "Content-Type: " << it->second << "\r\n";
+            if (it->second == "application/json") {
+                std::string serialized = JsonUtils::serialize(res.body);
+                stream << "Content-Length: " << serialized.size() << "\r\n\r\n";
+                stream << serialized;
+            } else {
+                stream << "Content-Length: " << res.text.size() << "\r\n\r\n";
+                stream << res.text;
+            }
+        } else {
+            stream << "Content-Type: text/plain\r\n";
+            stream << "Content-Length: " << res.text.size() << "\r\n\r\n";
+            stream << res.text;
+        }
+
+        SSL_write(ssl, stream.str().c_str(), stream.str().size());
     }
+
 }
