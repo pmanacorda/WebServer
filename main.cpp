@@ -39,7 +39,6 @@ void handle(Core::ClientSocket clientSocket){
         } else {
             response.statusCode = 404;
         }
-        std::this_thread::sleep_for(std::chrono::seconds(60)); 
         clientSocket.write(response);
     }catch(...){}
     thread_count.fetch_sub(1);
