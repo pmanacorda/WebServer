@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
+#include <thread>
+#include <atomic>
 #include "HttpModule.h"
 #include "SocketModule.h"
 #include "PresentationModule.h"
@@ -21,8 +23,9 @@ std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> bu
 }
 
 auto routes = buildRoutes();
+std::atomic<uint16_t> thread_count = {0};
 
-void handle(Core::ClientSocket& clientSocket){
+void handle(Core::ClientSocket clientSocket){
     try{
         Core::HttpRequest request = clientSocket.recv();
         Core::HttpResponse response;
@@ -36,17 +39,25 @@ void handle(Core::ClientSocket& clientSocket){
         } else {
             response.statusCode = 404;
         }
-        
         clientSocket.write(response);
     }catch(...){}
+    thread_count.fetch_sub(1);
 }
 
 int main(){
-    Core::WebSocket listener(443, 10);
+    Core::WebSocket listener(4430, 10);
     while(true){
         try{
             Core::ClientSocket csocket = listener.accept();
-            handle(csocket);
+            if(thread_count.load() < 100){
+                thread_count.fetch_add(1);
+                std::thread(handle, std::move(csocket)).detach();
+            }else{
+                Core::HttpResponse response;
+                response.statusCode = 503;
+                response.text = "Service temporarily unavailable - too many connections";
+                csocket.write(response);
+            }
         }catch(...){ 
             continue; 
         }

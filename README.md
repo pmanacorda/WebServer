@@ -62,3 +62,14 @@ This feature serves static files (HTML, CSS, JavaScript) directly from the files
 - Automatic MIME type detection sets appropriate Content-Type headers (text/html, text/css, application/javascript)
 - Supports standard web assets including HTML pages, stylesheets, and client-side scripts
 - Configurable static file directory path for organized web content structure
+
+# Add-Multithreading
+This feature adds concurrent request handling using C++ threading with connection limits:
+- Each accepted client connection spawns a dedicated std::thread for parallel processing
+- Atomic counter (std::atomic<uint16_t>) tracks active thread count to prevent resource exhaustion
+- Configurable maximum thread limit prevents server overload
+- Thread count increments before spawn and decrements automatically when request processing completes
+- Connections exceeding the thread limit are gracefully rejected by allowing the ClientSocket destructor to close the connection
+- Uses std::thread::detach() for fire-and-forget execution, eliminating need for thread cleanup
+- Move semantics efficiently transfer ClientSocket ownership to worker threads without copying
+- Provides horizontal scaling for handling multiple simultaneous client requests

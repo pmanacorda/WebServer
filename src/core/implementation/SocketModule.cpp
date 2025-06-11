@@ -101,7 +101,9 @@ namespace Core {
         configureSSL(ctx);
     }
     ClientSocket::~ClientSocket(){
-        close(fd);
+        if(fd != -1){
+            close(fd);
+        }
         if(ssl){
             SSL_shutdown(ssl);
             SSL_free(ssl);
@@ -247,8 +249,8 @@ namespace Core {
         // write back
         // see docs: https://man7.org/linux/man-pages/man2/write.2.html
         auto it = res.headers.find("Content-Type");
+        std::stringstream stream;
         if(it != res.headers.end()){
-            std::stringstream stream;
             if(it->second == "application/json"){
                 std::string serialized = JsonUtils::serialize(res.body);
                 stream << "HTTP/1.1 " << res.statusCode << " " << HttpResponse::getStatusStr(res.statusCode) << "\r\n";
@@ -262,6 +264,11 @@ namespace Core {
                 stream << res.text;
                 SSL_write(ssl, stream.str().c_str(), stream.str().size());
             }
+        }else{
+            stream << "HTTP/1.1 " << res.statusCode << " " << HttpResponse::getStatusStr(res.statusCode) << "\r\n";
+            stream << "Content-Type:text/plain" << "\r\nContent-Length:" << res.text.size() <<"\r\n\r\n";
+            stream << res.text;
+            SSL_write(ssl, stream.str().c_str(), stream.str().size());
         }
     }
 }

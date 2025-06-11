@@ -14,9 +14,11 @@
 namespace Core {
         class ClientSocket{
         private:
+        void configureSSL(SSL_CTX*);
+
+        protected:
         int fd;
         SSL* ssl;
-        void configureSSL(SSL_CTX*);
 
         public:
         ClientSocket(int, SSL_CTX*);
@@ -24,8 +26,31 @@ namespace Core {
 
         ClientSocket(const ClientSocket&) = delete;
         ClientSocket& operator=(const ClientSocket&) = delete;
-        ClientSocket(ClientSocket&&) = default;
-        ClientSocket& operator=(ClientSocket&&) = default;
+
+        ClientSocket(ClientSocket&& other) noexcept {
+            fd = other.fd;
+            ssl = other.ssl;
+            other.fd = -1;
+            other.ssl = nullptr;
+        }
+        
+        ClientSocket& operator=(ClientSocket&& other) noexcept {
+            if(this != &other){
+                if(fd != -1){
+                    close(fd);
+                }
+                if(ssl){
+                    SSL_shutdown(ssl);
+                    SSL_free(ssl);
+                }
+                
+                fd = other.fd;
+                ssl = other.ssl;
+                other.fd = -1;
+                other.ssl = nullptr;
+            }
+            return *this;
+        }
 
         HttpRequest recv();
         void write(HttpResponse);
@@ -47,8 +72,8 @@ namespace Core {
 
         WebSocket(const WebSocket&) = delete;
         WebSocket& operator=(const WebSocket&) = delete;
-        WebSocket(WebSocket&&) = default;
-        WebSocket& operator=(WebSocket&&) = default;
+        WebSocket(WebSocket&&) = delete;
+        WebSocket& operator=(WebSocket&&) = delete;
 
         ClientSocket accept();
     };
