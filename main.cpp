@@ -10,9 +10,15 @@
 #include "PresentationModule.h"
 #include "BaseController.h"
 
-std::unordered_map<std::string, std::unique_ptr<Controllers::BaseController>> buildRoutes() {
-    std::unordered_map<std::string, std::unique_ptr<Controllers::BaseController>> map;
-    map["/api/test"] = std::make_unique<Controllers::TestController>();
+std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> buildRoutes() {
+    std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> map;
+    map["/api/test"] = std::make_shared<Controllers::TestController>();
+
+    auto indexController = std::make_shared<Controllers::IndexController>();
+    map["/index.html"] = indexController;
+    map["/index.css"] = indexController;
+    map["/index.js"] = indexController;
+
     return map;
 }
 
@@ -23,7 +29,10 @@ void handle(Core::ClientSocket clientSocket){
     try{
         Core::HttpRequest request = clientSocket.recv();
         Core::HttpResponse response;
-        
+
+        if(request.path == "/" || request.path == ""){
+            request.path = "/index.html";
+        }
         auto route = routes.find(request.path);
         if(route != routes.end()){
             route->second->Run(request, response);

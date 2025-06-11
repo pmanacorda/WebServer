@@ -1,5 +1,4 @@
 #include "SocketModule.h"
-
 namespace Core {
     void WebSocket::create(){
         // create socket
