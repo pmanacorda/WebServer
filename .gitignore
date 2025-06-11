@@ -1,0 +1,5 @@
+main
+server.*
+.idea/*
+.vscode/*
+main.dSYM/*
