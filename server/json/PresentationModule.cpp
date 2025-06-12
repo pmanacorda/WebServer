@@ -1,4 +1,3 @@
-
 #include "PresentationModule.h"
 
 /*
@@ -15,7 +14,8 @@ std::vector<std::unordered_map<std::string, std::string>> JsonUtils::deserialize
     std::string value = "";
     char buffer[100];
     int buffIndex = 0;
-    for(int i=0; i<raw.size(); i++){
+    
+    for(size_t i = 0; i < raw.size(); i++){
         switch(raw[i]){
             case '{':
             case ' ':
@@ -26,23 +26,23 @@ std::vector<std::unordered_map<std::string, std::string>> JsonUtils::deserialize
             case '"':
             case ',':
                 if(buffIndex > 0){
-                    if(key.size() == 0){
+                    if(key.empty()){
                         key = std::string(buffer, buffIndex);
                     }else{
-                        value = std::string(buffer, buffIndex);;
-                        obj.insert_or_assign(key, value);
-                        key = "";
-                        value = "";
+                        value = std::string(buffer, buffIndex);
+                        obj.insert_or_assign(std::move(key), std::move(value));
+                        key.clear();
+                        value.clear();
                     }
                     buffIndex = 0;
                 }
                 break;
             case '}':
-                res.push_back(obj);
+                res.push_back(std::move(obj));
                 obj.clear();
                 break;
             default:
-                buffer[buffIndex++]=raw[i];
+                buffer[buffIndex++] = raw[i];
                 break;
         }
     }
@@ -52,16 +52,16 @@ std::vector<std::unordered_map<std::string, std::string>> JsonUtils::deserialize
 std::string JsonUtils::serialize(std::vector<std::unordered_map<std::string, std::string>> input){
     std::string output = "[";
     bool firstItem = true;
-    for (auto item : input){
+    
+    for (const auto& item : input){
         std::string inner = "";
         if(!firstItem) inner += ',';
         inner += '{';
         bool first = true;
-        for(auto it = item.begin(); it != item.end(); it++){
+        
+        for(const auto& [key, val] : item){
             if(!first) inner += ',';
-            std::stringstream kvp;
-            kvp << '"' << it->first << '"' << ':' << '"' << it->second << '"';
-            inner.append(kvp.str());
+            inner += "\"" + key + "\":\"" + val + "\"";
             first = false;
         }
         inner += '}';

@@ -10,7 +10,7 @@
 #include "PresentationModule.h"
 #include "BaseController.h"
 
-std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> buildRoutes() {
+auto buildRoutes() {
     std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> map;
     map["/api/test"] = std::make_shared<Controllers::TestController>();
 
@@ -18,66 +18,75 @@ std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> bu
     map["/index.html"] = indexController;
     map["/index.css"] = indexController;
     map["/index.js"] = indexController;
+    map["/favicon.ico"] = indexController;
 
     return map;
 }
 
-auto routes = buildRoutes();
-std::atomic<uint16_t> thread_count = {0};
+inline auto routes = buildRoutes();
+inline std::atomic<uint16_t> thread_count{0};
 
-void handle(Core::ClientSocket clientSocket){
-    try{
+void handle(Core::ClientSocket clientSocket) {
+    try {
         bool keepAlive = true;
-        while(keepAlive){
+        while (keepAlive) {
             Core::HttpRequest request = clientSocket.recv();
             Core::HttpResponse response;
-            if(request.path.empty()) {
+            
+            if (request.path.empty()) {
                 response.headers["Connection"] = "Close";
                 response.statusCode = 499;
                 clientSocket.write(response);
                 break;
             }
-            if(request.path == "/"){
+            
+            if (request.path == "/") {
                 request.path = "/index.html";
             }
-            auto route = routes.find(request.path);
-            if(route != routes.end()){
-                route->second->Run(request, response);
+            
+            if (routes.contains(request.path)) {
+                routes[request.path]->Run(request, response);
             } else {
                 response.statusCode = 404;
             }
-            if(request.headers.find("Connection") != request.headers.end()){
-                auto val = request.headers["Connection"];
-                keepAlive = val == "Keep-Alive" || val == "keep-alive";
-            }else{ keepAlive = false; }
-
-            if(keepAlive){
-                response.headers["Connection"] = "Keep-Alive";
-                response.headers["Keep-Alive"] = "timeout=30, max=100";
-            }else{
-                response.headers["Connection"] = "Close";
+            
+            if (auto it = request.headers.find("Connection"); it != request.headers.end()) {
+                keepAlive = (it->second == "Keep-Alive") || (it->second == "keep-alive");
+            } else { 
+                keepAlive = false; 
             }
+
+            response.headers["Connection"] = keepAlive ? "Keep-Alive" : "Close";
+            if (keepAlive) {
+                response.headers["Keep-Alive"] = "timeout=30, max=100";
+            }
+            
             clientSocket.write(response);
         }
-    }catch(...){}
+    } catch(...) { }
+    
     thread_count.fetch_sub(1);
 }
 
-int main(){
+int main() {
     Core::WebSocket listener(443, 10);
-    while(true){
-        try{
+    
+    while (true) {
+        try {
             Core::ClientSocket csocket = listener.accept();
-            if(thread_count.load() < 100){
+            
+            constexpr uint16_t MAX_THREADS = 100;
+            
+            if (thread_count.load() < MAX_THREADS) {
                 thread_count.fetch_add(1);
                 std::thread(handle, std::move(csocket)).detach();
-            }else{
+            } else {
                 Core::HttpResponse response;
                 response.statusCode = 503;
-                response.text = "Service temporarily unavailable - too many connections";
+                response.text = "Service temporarily unavailable";
                 csocket.write(response);
             }
-        }catch(...){ 
+        } catch (...) { 
             continue; 
         }
     }
