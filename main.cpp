@@ -18,6 +18,7 @@ auto buildRoutes() {
     map["/index.html"] = indexController;
     map["/index.css"] = indexController;
     map["/index.js"] = indexController;
+    map["/favicon.ico"] = indexController;
 
     return map;
 }
