@@ -2,7 +2,7 @@ name: WebServer Pipeline
 run-name: WebServer 
 on:
   push: 
-    branches: [maintenance/folder-restructuring]
+    branches: [main]
 jobs:
   Build:
     runs-on: self-hosted
