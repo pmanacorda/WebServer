@@ -81,3 +81,17 @@ This feature adds support for persistent HTTP connections using the Connection: 
 - If the client does not request keep-alive, or explicitly sets Connection: close, the server shuts down the connection after the response is sent.
 - Implements socket-level timeout protection using setsockopt() with SO_RCVTIMEO, ensuring the server thread doesn't hang if a client goes idle without closing.
 - Also enables TCP-level keep-alive using SO_KEEPALIVE to detect broken connections (e.g. client unexpectedly disconnected) and clean up server resources.
+
+# Add-GitHub-Actions-CI/CD
+This feature automates the build and deployment process using GitHub Actions self-hosted runners:
+- Triggers on push events to specified branches for continuous integration
+- Performs automated compilation with g++ using C++17 standard and proper OpenSSL linking
+- Safely cleans up previous deployments and replaces the running webserver binary
+
+# Add-AWS-CloudFormation-Infrastructure
+This feature provisions secure AWS infrastructure using Infrastructure as Code principles:
+- Creates isolated VPC with custom CIDR block (10.0.0.0/16) and dedicated public subnet
+- Configures Internet Gateway with proper routing for external web traffic access
+- Implements restrictive security groups allowing only SSH from specific IP and HTTP/HTTPS from internet
+- Provisions EC2 t2.nano instance with Amazon Linux 2023 AMI for cost-effective hosting
+- Includes IAM role configuration for fine-grained permission control and security isolation
