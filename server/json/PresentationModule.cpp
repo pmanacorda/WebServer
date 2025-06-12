@@ -61,7 +61,7 @@ std::string JsonUtils::serialize(std::vector<std::unordered_map<std::string, std
         
         for(const auto& [key, val] : item){
             if(!first) inner += ',';
-            inner += std::format(R"("{}":"{}")", key, val);
+            inner += "\"" + key + "\":\"" + val + "\"";
             first = false;
         }
         inner += '}';
