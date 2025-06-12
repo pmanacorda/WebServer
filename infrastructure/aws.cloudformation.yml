@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: WebServer EC2 instance setup & configuration
+
+Resources:
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: WebServerProfile
+      Roles: ...
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AdditionalInfo: Hosting Server
+      AvailabilityZone: us-west-1
+      IamInstanceProfile: ...
