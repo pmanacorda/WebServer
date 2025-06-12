@@ -12,6 +12,6 @@ jobs:
       - name: Build
         run: "make build"
       - name: Delete
-        run: "rm -rf ~/infrastructure ~/src"
+        run: "rm -rf ~/client ~/webserver"
       - name: Replace
-        run: "mv -f ./* ~"
+        run: "mv -f ./client ./webserver ~"
