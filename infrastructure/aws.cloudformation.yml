@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: WebServer EC2 instance setup & configuration
+
+Resources:
+  NetworkVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  IgwAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref NetworkVPC
+
+  SubnetRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NetworkVPC
+  IgwRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IgwAttachment
+    Properties:
+      GatewayId: !Ref InternetGateway
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref SubnetRouteTable
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: us-west-1b
+      VpcId: !Ref NetworkVPC
+  
+  RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref SubnetRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  WebServerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: WebServer Role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DenyAllActions
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+                - Sid: DisableAllActions
+                  Effect: Deny
+                  Action: '*'
+                  Resource: '*'
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: WebServerProfile
+      Roles:
+        - !Ref WebServerRole
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: WebServer Security Group
+      GroupName: WebServerSG
+      VpcId: !Ref NetworkVPC
+  InstanceSecurityGroupIngressSSHRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref InstanceSecurityGroup
+      CidrIp: 75.233.12.122/32
+      Description: Allow SSH From Myself
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+  InstanceSecurityGroupIngressHTTPSRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref InstanceSecurityGroup
+      CidrIp: 0.0.0.0/0
+      Description: Allow HTTPS From Internet
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+  InstanceSecurityGroupIngressHTTPRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref InstanceSecurityGroup
+      CidrIp: 0.0.0.0/0
+      Description: Allow HTTP From Internet
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+  InstanceSecurityGroupEgressRule:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref InstanceSecurityGroup
+      CidrIp: 0.0.0.0/0
+      Description: Allow Outbound Traffic
+      IpProtocol: -1
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AdditionalInfo: Hosting Server
+      InstanceType: t2.nano
+      ImageId: ami-0cbad6815f3a09a6d #Amazon Linux 2023
+      IamInstanceProfile: !Ref InstanceProfile
+      KeyName: WebServerKeyPair
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          GroupSet:
+            - !Ref InstanceSecurityGroup
+          SubnetId: !Ref PublicSubnet
+
+#sudo yum update
+#sudo yum groupinstall "Development Tools"
+#sudo yum install openssl-devel
