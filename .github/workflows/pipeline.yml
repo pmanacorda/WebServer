@@ -12,5 +12,6 @@ jobs:
       - run: "ls"
       - name: Build
         run: "g++ -std=c++17 -Isrc/core/headers -Isrc/controllers/headers main.cpp src/core/implementation/*.cpp src/controllers/implementation/*.cpp -lssl -lcrypto -o webserver"
-      - name: Move
+      - name: Replace
+        run: "rm -rf ~/infrastructure ~/src"
         run: "mv -f ./* ~"
