@@ -2,9 +2,7 @@
 From-Scratch implementation of a web server in C++
 
 # Build
-g++ -std=c++17 -g -Isrc/core/headers -Isrc/controllers/headers -I /opt/homebrew/opt/openssl@3/include \
-main.cpp src/core/implementation/*.cpp src/controllers/implementation/*.cpp \
--L /opt/homebrew/opt/openssl@3/lib -lssl -lcrypto -o main
+make build
 
 # Add-Listener-Socket
 This feature adds IPv4 socket configuration using Linux kernel functions:
