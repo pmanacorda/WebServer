@@ -69,7 +69,7 @@ void handle(Core::ClientSocket clientSocket) {
 }
 
 int main() {
-    Core::WebSocket listener(443, 10);
+    Core::Listener listener(443, 10);
     
     while (true) {
         try {

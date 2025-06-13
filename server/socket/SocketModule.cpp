@@ -1,6 +1,6 @@
 #include "SocketModule.h"
 namespace Core {
-    void WebSocket::create(){
+    void Listener::create(){
         // create socket
         // see docs: https://man7.org/linux/man-pages/man2/socket.2.html
         fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -9,7 +9,7 @@ namespace Core {
             throw std::runtime_error("Failed to create socket");
         }
     };
-    void WebSocket::configure(){
+    void Listener::configure(){
         // set socket options
         // see docs: https://man7.org/linux/man-pages/man7/socket.7.html    
         int opt = 1;
@@ -19,7 +19,7 @@ namespace Core {
             throw std::runtime_error("Failed to configure socket");
         }
     }
-    void WebSocket::bind(){
+    void Listener::bind(){
         // bind socket to port
         // docs: https://man7.org/linux/man-pages/man2/bind.2.html
         sockaddr_in socketAddress{};
@@ -31,7 +31,7 @@ namespace Core {
             throw std::runtime_error("Failed to bind socket");
         }
     };
-    void WebSocket::listen(){
+    void Listener::listen(){
         // set socket in listening mode
         // see docs: https://man7.org/linux/man-pages/man2/listen.2.html
         if (::listen(fd, backlog) == -1) {
@@ -39,7 +39,7 @@ namespace Core {
             throw std::runtime_error("Failed to listen on socket");
         }
     };
-    ClientSocket WebSocket::accept(){
+    ClientSocket Listener::accept(){
         // accept incoming client connections
         // see docs: https://man7.org/linux/man-pages/man2/accept.2.html
         sockaddr_in peerAddress{};
@@ -51,7 +51,7 @@ namespace Core {
         return ClientSocket(cfd, this->ssl_ctx);
     };
 
-    void WebSocket::configureSSL(){
+    void Listener::configureSSL(){
         SSL_load_error_strings();
         OpenSSL_add_ssl_algorithms(); 
         ssl_ctx = SSL_CTX_new(TLS_server_method());
@@ -76,7 +76,7 @@ namespace Core {
         SSL_CTX_set_cipher_list(ssl_ctx, "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS");
     }
 
-    WebSocket::WebSocket(int port, int backlog){
+    Listener::Listener(int port, int backlog){
         this->port = port;
         this->backlog = backlog;
         configureSSL();
@@ -86,7 +86,7 @@ namespace Core {
         listen();
     };
 
-    WebSocket::~WebSocket(){
+    Listener::~Listener(){
         if(fd != -1){
             close(fd);
         }
