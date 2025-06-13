@@ -269,6 +269,11 @@ namespace Core {
             stream << "Keep-Alive: " << keepAlive->second << "\r\n";
         }
 
+        auto cookies = res.headers.find("Set-Cookie");
+        if (cookies != res.headers.end()) {
+            stream << "Set-Cookie: " << cookies->second << "\r\n";
+        }
+
         if (it != res.headers.end()) {
             stream << "Content-Type: " << it->second << "\r\n";
             if (it->second == "application/json") {

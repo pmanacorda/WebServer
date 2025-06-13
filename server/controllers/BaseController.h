@@ -21,7 +21,7 @@ namespace Controllers{
         virtual void Run(Core::HttpRequest& req, Core::HttpResponse& res){}
     };
 
-    class TestController : public BaseController {
+    class LoginController : public BaseController {
     public:
         void Run(Core::HttpRequest& req, Core::HttpResponse& res) override;
     };

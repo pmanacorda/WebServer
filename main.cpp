@@ -12,7 +12,7 @@
 
 auto buildRoutes() {
     std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> map;
-    map["/api/test"] = std::make_shared<Controllers::TestController>();
+    map["/api/login"] = std::make_shared<Controllers::LoginController>();
 
     auto indexController = std::make_shared<Controllers::IndexController>();
     map["/index.html"] = indexController;
