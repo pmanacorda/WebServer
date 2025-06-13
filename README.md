@@ -93,3 +93,9 @@ This feature provisions secure AWS infrastructure using Infrastructure as Code p
 - Implements restrictive security groups allowing only SSH from specific IP and HTTP/HTTPS from internet
 - Provisions EC2 t2.nano instance with Amazon Linux 2023 AMI for cost-effective hosting
 - Includes IAM role configuration for fine-grained permission control and security isolation
+
+# Add-Authentication
+This feature adds user authentication:
+- Leverages HTTP Cookies to store session tokens in client browser
+- Sets HttpOnly and Secure flags to enhance security and prevent spoofing
+- Adds automatic redirects upon successful login
