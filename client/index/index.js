@@ -17,12 +17,10 @@ $("#submit-button").on("click", function(event) {
     .then(response => {
         if (response.ok) {
             console.log("Login successful");
+            location.href = 'about.html';
         } else {
             console.log("Login failed");
         }
-    })
-    .then(data => {
-       
     })
     .catch(error => {
         console.error("Error:", error);

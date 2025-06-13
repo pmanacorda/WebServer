@@ -12,13 +12,22 @@
 
 auto buildRoutes() {
     std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> map;
-    map["/api/login"] = std::make_shared<Controllers::LoginController>();
+
+    auto loginController = std::make_shared<Controllers::LoginController>();
+    map["/api/login"] = loginController;
+    map["/api/logout"] = loginController;
 
     auto indexController = std::make_shared<Controllers::IndexController>();
     map["/index.html"] = indexController;
     map["/index.css"] = indexController;
     map["/index.js"] = indexController;
     map["/favicon.ico"] = indexController;
+
+    auto aboutController = std::make_shared<Controllers::AboutController>();
+    map["/about.html"] = aboutController;
+    map["/about.css"] = aboutController;
+    map["/about.js"] = aboutController;
+    map["/api/about"] = aboutController;
 
     return map;
 }
