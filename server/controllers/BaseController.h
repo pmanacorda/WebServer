@@ -21,12 +21,21 @@ namespace Controllers{
         virtual void Run(Core::HttpRequest& req, Core::HttpResponse& res){}
     };
 
-    class TestController : public BaseController {
+    class LoginController : public BaseController {
+    private:
+        std::unordered_map<std::string, std::time_t> tokens;
+
+    public:
+        void Run(Core::HttpRequest& req, Core::HttpResponse& res) override;
+        bool isAuthenticated(Core::HttpRequest& req);
+    };
+
+    class IndexController : public BaseController {
     public:
         void Run(Core::HttpRequest& req, Core::HttpResponse& res) override;
     };
 
-    class IndexController : public BaseController {
+    class AboutController : public BaseController {
     public:
         void Run(Core::HttpRequest& req, Core::HttpResponse& res) override;
     };

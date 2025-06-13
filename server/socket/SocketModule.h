@@ -56,7 +56,7 @@ namespace Core {
         void write(HttpResponse);
     };
     
-    class WebSocket{
+    class Listener{
         private:
         int fd, port, backlog;
         void create();
@@ -67,13 +67,13 @@ namespace Core {
         SSL_CTX *ssl_ctx;
 
         public:
-        WebSocket(int,int);
-        ~WebSocket();
+        Listener(int,int);
+        ~Listener();
 
-        WebSocket(const WebSocket&) = delete;
-        WebSocket& operator=(const WebSocket&) = delete;
-        WebSocket(WebSocket&&) = delete;
-        WebSocket& operator=(WebSocket&&) = delete;
+        Listener(const Listener&) = delete;
+        Listener& operator=(const Listener&) = delete;
+        Listener(Listener&&) = delete;
+        Listener& operator=(Listener&&) = delete;
 
         ClientSocket accept();
     };
