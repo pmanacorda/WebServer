@@ -5,15 +5,26 @@
 #include <memory>
 #include <thread>
 #include <atomic>
+#include <any>
 #include "HttpModule.h"
 #include "SocketModule.h"
 #include "PresentationModule.h"
 #include "BaseController.h"
+#include "AuthService.h"
+#include <typeindex>
 
-auto buildRoutes() {
+auto buildServices(){
+    std::unordered_map<std::type_index, std::any> services;
+    auto authService = std::make_shared<Services::AuthService>();
+    services[std::type_index(typeid(Services::AuthService))] = authService;
+    return services;
+}
+inline auto services = buildServices();
+
+auto buildRoutes(std::unordered_map<std::type_index, std::any> services) {
     std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> map;
 
-    auto loginController = std::make_shared<Controllers::LoginController>();
+    auto loginController = std::make_shared<Controllers::LoginController>(services[std::type_index(typeid(Services::AuthService))]);
     map["/api/login"] = loginController;
     map["/api/logout"] = loginController;
 
@@ -32,8 +43,10 @@ auto buildRoutes() {
     return map;
 }
 
-inline auto routes = buildRoutes();
+
+inline auto routes = buildRoutes(services);
 inline std::atomic<uint16_t> thread_count{0};
+inline std::vector<std::string> protectedRoutes = {"/about.html", "/about.css", "/about.js", "/api/about"};
 
 void handle(Core::ClientSocket clientSocket) {
     try {
@@ -51,6 +64,16 @@ void handle(Core::ClientSocket clientSocket) {
             
             if (request.path == "/") {
                 request.path = "/index.html";
+            }
+
+            if (std::find(protectedRoutes.begin(), protectedRoutes.end(), request.path) != protectedRoutes.end()) {
+                auto authService = std::any_cast<std::shared_ptr<Services::AuthService>>(services[std::type_index(typeid(Services::AuthService))]);
+                if (!authService->isAuthenticated(request)) {
+                    response.statusCode = 401;
+                    response.headers["Connection"] = "Close";
+                    clientSocket.write(response);
+                    break;
+                }
             }
             
             if (routes.contains(request.path)) {

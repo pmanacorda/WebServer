@@ -99,3 +99,9 @@ This feature adds user authentication:
 - Leverages HTTP Cookies to store session tokens in client browser
 - Sets HttpOnly and Secure flags to enhance security and prevent spoofing
 - Adds automatic redirects upon successful login
+
+# Add-Authorization
+This features adds protected routes that require valid cookie:
+- Protected routes check for valid cookie and return 401 if unauthorized
+- Custom dependency injection resolver adds auth service to login controller
+- Cookie session token is validated for both existence and timestamp validity

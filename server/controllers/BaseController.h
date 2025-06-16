@@ -1,8 +1,10 @@
 #ifndef BASE_CONTROLLER_H
 #define BASE_CONTROLLER_H
 #include "HttpModule.h"
+#include "AuthService.h"
 #include <fstream>
 #include <sstream>
+#include <any>
 namespace Controllers{
     class BaseController{
         public:
@@ -23,9 +25,9 @@ namespace Controllers{
 
     class LoginController : public BaseController {
     private:
-        std::unordered_map<std::string, std::time_t> tokens;
-
+        std::shared_ptr<Services::AuthService> _authService;
     public:
+        LoginController(std::any);
         void Run(Core::HttpRequest& req, Core::HttpResponse& res) override;
         bool isAuthenticated(Core::HttpRequest& req);
     };
