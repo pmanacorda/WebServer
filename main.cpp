@@ -5,15 +5,24 @@
 #include <memory>
 #include <thread>
 #include <atomic>
+#include <any>
 #include "HttpModule.h"
 #include "SocketModule.h"
 #include "PresentationModule.h"
 #include "BaseController.h"
 
-auto buildRoutes() {
+auto buildServices(){
+    std::unordered_map<std::type_index, std::any> services;
+    auto authService = std::make_unique<Services::AuthService>();
+    services[typeid(Services::AuthService)] = std::move(authService);
+    return services;
+}
+inline auto services = buildServices();
+
+auto buildRoutes(std::unordered_map<std::type_index, std::any> services) {
     std::unordered_map<std::string, std::shared_ptr<Controllers::BaseController>> map;
 
-    auto loginController = std::make_shared<Controllers::LoginController>();
+    auto loginController = std::make_shared<Controllers::LoginController>(services[typeid(Services::AuthService)]);
     map["/api/login"] = loginController;
     map["/api/logout"] = loginController;
 
@@ -32,7 +41,8 @@ auto buildRoutes() {
     return map;
 }
 
-inline auto routes = buildRoutes();
+
+inline auto routes = buildRoutes(services);
 inline std::atomic<uint16_t> thread_count{0};
 
 void handle(Core::ClientSocket clientSocket) {
