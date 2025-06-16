@@ -1,20 +1,19 @@
 #include "BaseController.h"
 
 namespace Controllers{
-    LoginController(Services::AuthService authService){
-        _authService = authService;
+    LoginController::LoginController(std::any authService){
+        _authService = std::any_cast<std::shared_ptr<Services::AuthService>>(authService);
     }
+    
     void LoginController::Run(Core::HttpRequest& req, Core::HttpResponse& res){
         if(req.path.contains("login")){
-            std::unordered_map<std::string, std::string> jsonObj;
             if(req.json.size() == 1){
                 auto body = req.json[0];
                 if (body.find("Username") != body.end() && 
                     body.find("Password") != body.end()) {
-                    if (_authService.isValidUser(body["Username"], body["Password"])) {
-                        res.headers["Set-Cookie"] = _authService.generateCookie();
+                    if (_authService->validUser(body["Username"], body["Password"])) {
+                        res.headers["Set-Cookie"] = _authService->generateCookie();
                         res.headers["Content-Type"] = "application/json";
-                        tokens["session_token=abc123"] = std::time(nullptr);
                         res.statusCode = 200;
                         return; 
                     }
@@ -29,6 +28,9 @@ namespace Controllers{
             res.statusCode = 200;
             return; 
         }
-    };
+    }
 
+    bool LoginController::isAuthenticated(Core::HttpRequest& req){
+        return _authService->isAuthenticated(req);
+    }
 }

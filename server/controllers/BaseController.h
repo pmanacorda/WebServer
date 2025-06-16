@@ -4,6 +4,7 @@
 #include "AuthService.h"
 #include <fstream>
 #include <sstream>
+#include <any>
 namespace Controllers{
     class BaseController{
         public:
@@ -24,9 +25,9 @@ namespace Controllers{
 
     class LoginController : public BaseController {
     private:
-        Services::AuthService _authService;
+        std::shared_ptr<Services::AuthService> _authService;
     public:
-        LoginController(Services::AuthService);
+        LoginController(std::any);
         void Run(Core::HttpRequest& req, Core::HttpResponse& res) override;
         bool isAuthenticated(Core::HttpRequest& req);
     };
