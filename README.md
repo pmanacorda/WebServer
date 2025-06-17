@@ -1,8 +1,19 @@
 # WebServer
 From-Scratch implementation of a web server in C++
 
-# Build
-make build
+# Build, Run, Debug
+-> Ubuntu 24.04.2 LTS
+sudo apt install gcc
+sudo apt-get install gdb
+sudo apt install libssl-dev
+openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes
+make local
+touch credentials.json
+echo '{"Username": "Patrick", "Password": "Manacorda"}' | jq > credentials.json
+curl -sSL -X POST https://localhost:4430/api/login -H "Content-Type: application/json" -d @credentials.json -k -v 2>&1 | grep -i 'Set-Cookie' | cut -d= -f2 | cut -d';' -f1 > cookie.txt
+cat cookie.txt
+curl -sSL -X GET https://localhost:4430/api/about -H "Cookie: session_token=$(cat cookie.txt)" -k | jq 
+
 
 # Add-Listener-Socket
 This feature adds IPv4 socket configuration using Linux kernel functions:
