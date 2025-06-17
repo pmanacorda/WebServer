@@ -5,6 +5,8 @@ From-Scratch implementation of a web server in C++
 -> Ubuntu 24.04.2 LTS
 sudo apt install gcc
 sudo apt-get install gdb
+sudo apt install jq
+sudo apt-get install grep
 sudo apt install libssl-dev
 openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes
 make local
