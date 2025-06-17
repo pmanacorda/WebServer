@@ -1,10 +1,97 @@
 # WebServer
 From-Scratch implementation of a web server in C++
 
-# Build
-make build
+# Build, Run, Debug Guide
 
-# Add-Listener-Socket
+### 1. Install Required Dependencies
+
+```bash
+# Development tools
+sudo apt install make
+sudo apt install gcc
+sudo apt-get install gdb
+
+# SSL/TLS support
+sudo apt install openssl
+sudo apt install libssl-dev
+
+# Utilities
+sudo apt install jq
+sudo apt-get install grep
+```
+
+### 2. Generate SSL Certificates
+
+Create a self-signed SSL certificate for local development:
+
+```bash
+openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes
+```
+
+*Note: You'll be prompted to enter certificate information. For local development, you can use default values or press Enter to skip.*
+
+### 3. Build the Application
+
+```bash
+make local
+```
+
+## Configuration
+
+### Set Up Credentials
+
+Create a credentials file for authentication:
+
+```bash
+# Create the credentials file
+touch credentials.json
+
+# Add test login credentials
+echo '{"Username": "Patrick", "Password": "Manacorda"}' | jq > credentials.json
+```
+
+## Testing & Usage
+
+### 1. Authenticate and Get Session Token
+
+```bash
+# Login and extract session cookie
+curl -sSL -X POST https://localhost:4430/api/login \
+  -H "Content-Type: application/json" \
+  -d @credentials.json \
+  -k -v 2>&1 | grep -i 'Set-Cookie' | cut -d= -f2 | cut -d';' -f1 > cookie.txt
+
+# Verify the cookie was saved
+cat cookie.txt
+```
+
+### 2. Test API Endpoint
+
+```bash
+# Test the /api/about endpoint with authentication
+curl -sSL -X GET https://localhost:4430/api/about \
+  -H "Cookie: session_token=$(cat cookie.txt)" \
+  -k | jq
+```
+
+### 3. Access Web Interface
+
+Open your browser and navigate to: https://localhost:4430/index.html
+
+*Note: You'll need to accept the self-signed certificate warning in your browser.*
+
+
+### Debug Mode
+
+Use `gdb` for debugging:
+
+```bash
+gdb ./webserver
+```
+
+# Features
+
+## Add-Listener-Socket
 This feature adds IPv4 socket configuration using Linux kernel functions:
 - sys/socket.h::socket() to generate the socket file descriptor for this process
 - sys/socket.h::setsockopt() to configure the socket options for reuse address and connection keep alive
@@ -14,7 +101,7 @@ This feature adds IPv4 socket configuration using Linux kernel functions:
 sudo lsof -n -i :80 | grep LISTEN
 main    3465 patrickmanacorda    3u  IPv4 0xafe05602b6b5b277      0t0  TCP *:http (LISTEN)
 
-# Add-HTTP1.1-Parser
+## Add-HTTP1.1-Parser
 This feature reads and parses HTTP1.1 raw input bytes from the client socket:
 - sys/socket.h::read() to get bytes from socket descriptor into a temporary buffer
 - continue reading until header termination `\r\n\r\n` is received
@@ -25,7 +112,7 @@ This feature reads and parses HTTP1.1 raw input bytes from the client socket:
 - supports GET, POST, and DELETE methods with proper error handling
 - custom HttpRequest structure stores the parsed result with method, path, headers, parameters, and body
 
-# Add-Flat-Json-Parser
+## Add-Flat-Json-Parser
 This feature adds parsing for flat JSON objects in HTTP request bodies:
 - parseJson() function processes JSON strings into key-value pairs
 - supports flat objects: {"key": "value", "key2": 200, "key3": "value3"}
@@ -35,7 +122,7 @@ This feature adds parsing for flat JSON objects in HTTP request bodies:
 - integrates seamlessly with existing HTTP parser for POST request bodies
 - lightweight implementation without external JSON library dependencies
 
-# Add-Controllers
+## Add-Controllers
 This feature registers request handlers for matching HTTP paths:
 - uses a std::unordered_map to associate path strings with handler functions
 - handlers receive HttpRequest and HttpResponse references as parameters
@@ -43,7 +130,7 @@ This feature registers request handlers for matching HTTP paths:
 - after execution, the HttpResponse is serialized and sent back to the client in JSON format
 - supports easy extension by adding new routes and handler logic
 
-# Add-SSL
+## Add-SSL
 This feature adds HTTPS support using OpenSSL TLS:
 Generate self-signed cert and key with
 openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes
@@ -54,14 +141,14 @@ openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 
 - Uses SSL_read/SSL_write to handle encrypted communication
 - Cleans up SSL objects on socket close
 
-# Add-Static-Content
+## Add-Static-Content
 This feature serves static files (HTML, CSS, JavaScript) directly from the filesystem:
 - Controller reads files using std::ifstream and serves them based on request path
 - Automatic MIME type detection sets appropriate Content-Type headers (text/html, text/css, application/javascript)
 - Supports standard web assets including HTML pages, stylesheets, and client-side scripts
 - Configurable static file directory path for organized web content structure
 
-# Add-Multithreading
+## Add-Multithreading
 This feature adds concurrent request handling using C++ threading with connection limits:
 - Each accepted client connection spawns a dedicated std::thread for parallel processing
 - Atomic counter (std::atomic<uint16_t>) tracks active thread count to prevent resource exhaustion
@@ -72,7 +159,7 @@ This feature adds concurrent request handling using C++ threading with connectio
 - Move semantics efficiently transfer ClientSocket ownership to worker threads without copying
 - Provides horizontal scaling for handling multiple simultaneous client requests
 
-# Add-Connection-Keep-Alive
+## Add-Connection-Keep-Alive
 This feature adds support for persistent HTTP connections using the Connection: Keep-Alive header as defined in HTTP/1.1:
 - Parses and respects the Connection header in incoming client requests
 - If Connection: keep-alive is requested, the server maintains the same TCP connection across multiple HTTP requests
@@ -80,13 +167,13 @@ This feature adds support for persistent HTTP connections using the Connection: 
 - Implements socket-level timeout protection using setsockopt() with SO_RCVTIMEO, ensuring the server thread doesn't hang if a client goes idle without closing.
 - Also enables TCP-level keep-alive using SO_KEEPALIVE to detect broken connections (e.g. client unexpectedly disconnected) and clean up server resources.
 
-# Add-GitHub-Actions-CI/CD
+## Add-GitHub-Actions-CI/CD
 This feature automates the build and deployment process using GitHub Actions self-hosted runners:
 - Triggers on push events to specified branches for continuous integration
 - Performs automated compilation with g++ using C++17 standard and proper OpenSSL linking
 - Safely cleans up previous deployments and replaces the running webserver binary
 
-# Add-AWS-CloudFormation-Infrastructure
+## Add-AWS-CloudFormation-Infrastructure
 This feature provisions secure AWS infrastructure using Infrastructure as Code principles:
 - Creates isolated VPC with custom CIDR block (10.0.0.0/16) and dedicated public subnet
 - Configures Internet Gateway with proper routing for external web traffic access
@@ -94,13 +181,13 @@ This feature provisions secure AWS infrastructure using Infrastructure as Code p
 - Provisions EC2 t2.nano instance with Amazon Linux 2023 AMI for cost-effective hosting
 - Includes IAM role configuration for fine-grained permission control and security isolation
 
-# Add-Authentication
+## Add-Authentication
 This feature adds user authentication:
 - Leverages HTTP Cookies to store session tokens in client browser
 - Sets HttpOnly and Secure flags to enhance security and prevent spoofing
 - Adds automatic redirects upon successful login
 
-# Add-Authorization
+## Add-Authorization
 This features adds protected routes that require valid cookie:
 - Protected routes check for valid cookie and return 401 if unauthorized
 - Custom dependency injection resolver adds auth service to login controller

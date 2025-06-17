@@ -3,6 +3,7 @@
 #include "HttpModule.h"
 #include "AuthService.h"
 #include <fstream>
+#include <memory>
 #include <sstream>
 #include <any>
 namespace Controllers{
