@@ -20,9 +20,17 @@ $("#submit-button").on("click", function(event) {
             location.href = 'about.html';
         } else {
             console.log("Login failed");
+            $("#submit-button").addClass("shake");
+            setTimeout(() => {
+                $("#submit-button").removeClass("shake");
+            }, 250);
         }
     })
     .catch(error => {
         console.error("Error:", error);
+        $("#submit-button").addClass("shake");
+        setTimeout(() => {
+            $("#submit-button").removeClass("shake");
+        }, 250);
     });
 });
